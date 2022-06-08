@@ -3,6 +3,9 @@ from cv2 import TM_CCOEFF_NORMED
 from cv2 import IMREAD_GRAYSCALE
 from cv2 import IMREAD_ANYCOLOR
 from cv2 import FONT_HERSHEY_PLAIN
+from numpy import angle 
+import kinematik
+from sympy import *
 
 def empty(a):
     pass
@@ -17,11 +20,14 @@ camera = cv2.VideoCapture(1)                                            #cameras
 #Fenster mit Einstellparametern erstellen
 cv2.namedWindow("Bars")
 cv2.resizeWindow("Bars", 640, 240)
-cv2.createTrackbar("Pixel", "Bars", 74, 100, empty)
+cv2.createTrackbar("Pixel", "Bars", 86, 100, empty)
 cv2.createTrackbar("Wert", "Bars", 75, 100, empty)
-cv2.createTrackbar("Rahmen", "Bars", 50, 100, empty)
-cv2.createTrackbar("X", "Bars", 0, 640, empty)
-cv2.createTrackbar("Y", "Bars", 0, 480, empty)
+cv2.createTrackbar("Rahmen", "Bars", 43, 100, empty)
+cv2.createTrackbar("X", "Bars", 311, 640, empty)
+cv2.createTrackbar("Y", "Bars", 5, 480, empty)
+
+greifer = kinematik.d2r(20)
+Z = 60
 
 while camera.isOpened():                                                #Programmloop
     #einlesen der Einstellparameter
@@ -48,12 +54,12 @@ while camera.isOpened():                                                #Program
 
     bottom_right = (top_left[0] + w, top_left[1] + h)
     Xpos = int(top_left[0] + w/2)
-    newXpos = Xpos - X
+    newXpos = (Xpos - X)
     Ypos = int(top_left[1] + h/2)
-    newYpos = (Ypos - Y) * (-1)
+    newYpos = (Ypos - Y)
 
     cv2.drawMarker(image,(X,Y),(255,0,0),1,10,2)                        #Markierung der neuen Nullposition
-    text = "X= " + str(round((newXpos * pixelsize),2)) + " Y= " + str(round((newYpos * pixelsize),2)) + " Score= " + str(round(match_score,2)) + " Scale= " + str(round(pixelsize,2)) + " Size= " + str(w * pixelsize)
+    text = "X= " + str(round((newXpos * pixelsize),2)) + " Y= " + str(round((newYpos * pixelsize),2)) + " Score= " + str(round(match_score,2)) + " Scale= " + str(round(pixelsize,2)) + " Size= " + str(round((w * pixelsize),2))
     
     if match_score > score:                                             #Wird ein Objekt gefunden wird es markiert 
         cv2.drawMarker(image,(Xpos,Ypos),(0,255,0),1,10,2)      
@@ -64,11 +70,43 @@ while camera.isOpened():                                                #Program
     cv2.imshow("frame", finalimage)                                     #Kamerabild mit Markierungen
     #cv2.imshow("process", grayimage)                                   #Vorverarbeitetes Bild ohne Hintergrund
     
+    w = Matrix([0,0,0,0,0,0])
     key = cv2.waitKey(1) & 0xff
     if key == 13:                                                       #gibt die positionen aus wenn Enter gedrückt wird
+        trying = 0
+        approach = -1.00
         print("Relative X Position = " + str(round((newXpos * pixelsize),2)))
         print("Relative Y Position = " + str(round((newYpos * pixelsize),2)))
+        while trying == 0:
+            if approach < -0.02:
+                approach = approach + 0.05
+                print("trying " + str(approach))
+            if approach >= -0.02:
+                print("approach failed")
+                break 
+            w = Matrix([greifer,newXpos * pixelsize,newYpos * pixelsize,Z,approach*pi/2,pi/2])
+            trying = kinematik.BraccioGo(w)
+        if trying == 1:
+            print("position valid")
+
+    if key == 49:
+        greifer = kinematik.d2r(55)
+        print("greifer zu")
+    if key == 50:
+        greifer = kinematik.d2r(20)
+        print("greifer auf")
+    if key == 51:
+        Z = 10
+        print("Position unten")
+    if key == 52:
+        Z = 60
+        print("Position oben")
+    if key == 53:
+        kinematik.s.write(b'P90,90,90,90,90,55,30')
+    if key == 54:
+        kinematik.s.write(b'P90,90,90,90,90,20,30')
     if key == 57:                                                       #Screenshot wenn 9 gedrückt wid
         cv2.imwrite('C:/Users/CLEVO Computer/Documents/Python/RobotikProjekt/screenshot.jpg', finalimage)
     if key == 27:                                                       #ESC zum beenden
+        kinematik.closecom()
         break
