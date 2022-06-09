@@ -1,7 +1,7 @@
 Projektdateien Robotik
 
 install:
-serial (pyserial)
-CV2 (opencv-python)
-numpy
-sympy
+serial (pyserial),
+CV2 (opencv-python),
+numpy,
+sympy,
