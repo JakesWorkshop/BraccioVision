@@ -26,7 +26,7 @@ while camera.isOpened():                                    #Programmloop
 
     crop = image[Y:H, X:W]                                  #Zuschneiden auf eingestellte Größe
     cv2.rectangle(preview, (X, Y), (W, H), 255, 2)
-    cv2.imshow('background', preview)
+    cv2.imshow('background', preview)                       #Sowohl das vollständige als auch das Zugeschnittene Bild werden angezeigt
     cv2.imshow('crop', crop)
 
     key = cv2.waitKey(1) & 0xff

@@ -1,22 +1,20 @@
 from sympy import *
 import serial
 import time
-s = serial.Serial('COM3', 115200, timeout=5)
+s = serial.Serial('COM3', 115200, timeout=5)                    #Sereiller Port für die Ansteuerung
 time.sleep(3) 
 
-def d2r(deg):
+def d2r(deg):                                                   #Umrechnung von Grad zu Rad
     return deg/180*pi
 
-d1=70
+d1=70                                                           #IK Parameter des roboters
 a2=125
 a3=125
 a4=0
 d5=60+132
-greifer = 60
 
-def BraccioInverse(w):
-    q=Matrix([0,0,0,0,0,0])
-    # Basisgelenk
+def BraccioInverse(w):                                          #Berechnung der Inversen Kinematik
+    q=Matrix([0,0,0,0,0,0])                                     #Greifer,X,Y,Z,Handgelenk Pitch,Handgelenk Roll
     q[1]= atan2(w[2],w[1])
     q234 = w[4]
     b1 = w[1]*cos(q[1]) + w[2]*sin(q[1]) - a4*cos(q234) + d5*sin(q234)
@@ -36,36 +34,32 @@ def BraccioInverse(w):
     return q
 
 def genBraccioString(q):
-    # Umrechnung in Grad-Angaben
-    q_deg=N(q/pi*180)
+    q_deg=N(q/pi*180)                                           # Umrechnung in Grad-Angaben
 
-    # Roboter-String erzeugen
     go = True
-    for angle in q_deg:
+    for angle in q_deg:                                         #Prüfen ob die winkel erreichbar sind
         if not 0 <= angle <= 180:
-            print(angle)
             go=False
             break
-    if go:
+    if go:                                                      #Roboter-String erzeugen
         command="P"+str(int(q_deg[1]))+"," \
                 +str(int(q_deg[2]))+"," \
                 +str(int(q_deg[3]))+","\
                 +str(int(q_deg[4]))+","\
-                +str(int(q_deg[5]))+"," + str(int(q_deg[0])) + ",50\n"
-        # print(angles)
+                +str(int(q_deg[5]))+"," \
+                +str(int(q_deg[0]))+",50\n"
     else: 
-        # print("not in range")
         command = None
     return command
 
-def BraccioGo(w):
+def BraccioGo(w):                                               #Sendet Befehle an den Roboter
     angles = genBraccioString(BraccioInverse(w))
     if angles:
         s.write(angles.encode('ascii'))
         print(s.readline().decode())
-        return(1)    
+        return(1)                                               #Rückgabewert 1 wenn Position möglich ist
     else:
         return(0)       
 
-def closecom():
+def closecom():                                                 #Funktion zum schließsen des Serial Port
     s.close()
