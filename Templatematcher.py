@@ -27,11 +27,11 @@ camera = cv2.VideoCapture(1)                                            #Kameras
 print("Erstelle Fenster...")
 cv2.namedWindow("Bars")                                                 #Fenster mit Einstellparametern erstellen
 cv2.resizeWindow("Bars", 640, 240)
-cv2.createTrackbar("Pixel", "Bars", 860, 1000, empty)
+cv2.createTrackbar("Pixel", "Bars", 845, 1000, empty)
 cv2.createTrackbar("Wert", "Bars", 75, 100, empty)
-cv2.createTrackbar("Rahmen", "Bars", 43, 100, empty)
-cv2.createTrackbar("X", "Bars", 311, 640, empty)
-cv2.createTrackbar("Y", "Bars", 5, 480, empty)
+cv2.createTrackbar("Rahmen", "Bars", 40, 100, empty)
+cv2.createTrackbar("X", "Bars", 321, 640, empty)
+cv2.createTrackbar("Y", "Bars", 10, 480, empty)
 
 print("Bereit")
 while camera.isOpened():                                                #Programmloop
@@ -73,13 +73,13 @@ while camera.isOpened():                                                #Program
     finalimage = cv2.putText(image, text, (5,20), FONT_HERSHEY_PLAIN, 1, (0,0,0), 2)
     
     cv2.imshow("frame", finalimage)                                     #Kamerabild mit Markierungen
-    #cv2.imshow("process", grayimage)                                   #Vorverarbeitetes Bild ohne Hintergrund
+    cv2.imshow("process", grayimage)                                    #Vorverarbeitetes Bild ohne Hintergrund
     
     key = cv2.waitKey(1) & 0xff                                         #Programm wartet 1ms auf einen Tastendruck
     if key == 13:                                                       #gibt die positionen aus wenn Enter gedrückt wird
         RobX = Xmm
         RobY = Ymm
-        greifer = kinematik.d2r(20)
+        greifer = kinematik.d2r(10)
         if (tryPosition(RobX, RobY,  60, greifer) == 1):
             print("Bewege in Position")
             time.sleep(3)
@@ -91,9 +91,13 @@ while camera.isOpened():                                                #Program
                 print("Fertig")
 
     if key == 49:                                                       #Taste 1 zurück in Ausgangsposition mit geschlossenem Greifer
-        kinematik.s.write(b'P90,90,90,90,90,60,30')
+        kinematik.s.write(b'P90,90,90,90,90,60,50')
     if key == 50:                                                       #Taste 2 zurück in Ausgangsposition mit offenem Greifer
-        kinematik.s.write(b'P90,90,90,90,90,20,30')
+        kinematik.s.write(b'P90,90,90,90,90,10,50')
+    if key == 51:                                                       #Taste 3 zurück in Ausgangsposition mit offenem Greifer
+        kinematik.s.write(b'P90,110,0,20,90,60,50')
+    if key == 52:                                                       #Taste 4 zurück in Ausgangsposition mit offenem Greifer
+        kinematik.s.write(b'P90,110,0,20,90,10,50')
     if key == 57:                                                       #Taste 9 Screenshot
         cv2.imwrite('C:/Users/CLEVO Computer/Documents/Python/RobotikProjekt/screenshot.jpg', finalimage)
     if key == 27:                                                       #ESC zum beenden
@@ -103,11 +107,11 @@ while camera.isOpened():                                                #Program
     def tryPosition(Xp, Yp, Zp, Gp):
         trying = 0
         approach = -1.00
-        print("Versuche " + str(Xmm) + ", " + str(Ymm) + ", " + Z + " zu erreichen")
+        print("Versuche " + str(Xmm) + ", " + str(Ymm) + ", " + str(Z) + " zu erreichen")
         while trying == 0:
             if approach < -0.02:                                        #Wenn Maximum nicht erreicht ist versuche den winkel zu erhöhen
                 approach = approach + 0.05                              #es werden Winkel zwischen etwa -90 und 0 grad versucht
-                print("Versuche Winkel " + str(round(approach),2))
+                print("Versuche Winkel " + str(approach))
             if approach > -0.02:                                        #Wenn Maximum erreicht ist brich diesen Versuch ab
                 print("Keine mögliche Pose gefunden")
                 return 0
