@@ -47,7 +47,7 @@ def genBraccioString(q):
                 +str(int(q_deg[3]))+","\
                 +str(int(q_deg[4]))+","\
                 +str(int(q_deg[5]))+"," \
-                +str(int(q_deg[0]))+",50\n"
+                +str(int(q_deg[0]))+",75\n"
     else: 
         command = None
     return command
